@@ -1,4 +1,6 @@
-from testfixtures import LogCapture
+import logging
+
+import pytest
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
 
@@ -9,6 +11,23 @@ from tests.mockserver import MockServer
 from tests.spiders import SingleRequestSpider
 
 OVERRIDDEN_URL = "https://example.org"
+
+
+def check_present(records: list, name: str, level_name: str, message: str) -> bool:
+    present = False
+
+    for record in records:
+        if logging.getLevelName(record.levelno) != level_name:
+            continue
+
+        if record.name != name:
+            continue
+
+        if record.message == message:
+            present = True
+            break
+
+    return present
 
 
 class ProcessResponseMiddleware:
@@ -63,6 +82,10 @@ class CrawlTestCase(TestCase):
 
     def tearDown(self):
         self.mockserver.__exit__(None, None, None)
+
+    @pytest.fixture(autouse=True)
+    def inject_fixtures(self, caplog):
+        self._caplog = caplog
 
     @defer.inlineCallbacks
     def test_response_200(self):
@@ -125,7 +148,7 @@ class CrawlTestCase(TestCase):
         )
         crawler.signals.connect(signal_handler, signal=signals.response_received)
 
-        with LogCapture() as log:
+        with self._caplog.at_level(logging.DEBUG):
             yield crawler.crawl(seed=url, mockserver=self.mockserver)
 
         response = crawler.spider.meta["responses"][0]
@@ -134,12 +157,11 @@ class CrawlTestCase(TestCase):
         self.assertEqual(signal_params["response"].url, url)
         self.assertEqual(signal_params["request"].url, OVERRIDDEN_URL)
 
-        log.check_present(
-            (
-                "scrapy.core.engine",
-                "DEBUG",
-                f"Crawled (200) <GET {OVERRIDDEN_URL}> (referer: None)",
-            ),
+        check_present(
+            self._caplog.records,
+            "scrapy.core.engine",
+            "DEBUG",
+            f"Crawled (200) <GET {OVERRIDDEN_URL}> (referer: None)",
         )
 
     @defer.inlineCallbacks
@@ -203,14 +225,13 @@ class CrawlTestCase(TestCase):
             },
         )
 
-        with LogCapture() as log:
+        with self._caplog.at_level(logging.DEBUG):
             url = self.mockserver.url("/status?n=200")
             yield crawler.crawl(seed=url, mockserver=self.mockserver)
 
-        log.check_present(
-            (
-                "alternative_callbacks_spider",
-                "INFO",
-                "alt_callback was invoked with foo=bar",
-            ),
+        check_present(
+            self._caplog.records,
+            "alternative_callbacks_spider",
+            "INFO",
+            "alt_callback was invoked with foo=bar",
         )

@@ -22,6 +22,7 @@ from unittest.mock import Mock
 from urllib.parse import urlparse
 
 import attr
+import pytest
 from itemadapter import ItemAdapter
 from pydispatch import dispatcher
 from twisted.internet import defer, reactor
@@ -244,6 +245,11 @@ class CrawlerRun:
 
 
 class EngineTest(unittest.TestCase):
+
+    @pytest.fixture(autouse=True)
+    def inject_fixtures(self, caplog):
+        self._caplog = caplog
+
     @defer.inlineCallbacks
     def test_crawler(self):
         for spider in (

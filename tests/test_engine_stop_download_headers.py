@@ -1,7 +1,9 @@
-from testfixtures import LogCapture
+import logging
+
 from twisted.internet import defer
 
 from scrapy.exceptions import StopDownload
+from tests import check_present
 from tests.test_engine import (
     AttrsItemsSpider,
     CrawlerRun,
@@ -28,31 +30,25 @@ class HeadersReceivedEngineTest(EngineTest):
             DataClassItemsSpider,
         ):
             run = HeadersReceivedCrawlerRun(spider)
-            with LogCapture() as log:
+            with self._caplog.at_level(logging.DEBUG):
                 yield run.run()
-                log.check_present(
-                    (
-                        "scrapy.core.downloader.handlers.http11",
-                        "DEBUG",
-                        f"Download stopped for <GET http://localhost:{run.portno}/redirected> from"
-                        " signal handler HeadersReceivedCrawlerRun.headers_received",
-                    )
+                check_present(
+                    self._caplog.records,
+                    "scrapy.core.downloader.handlers.http11",
+                    "DEBUG",
+                    f"Download stopped for <GET http://localhost:{run.portno}/redirected> from signal handler HeadersReceivedCrawlerRun.headers_received",
                 )
-                log.check_present(
-                    (
-                        "scrapy.core.downloader.handlers.http11",
-                        "DEBUG",
-                        f"Download stopped for <GET http://localhost:{run.portno}/> from signal"
-                        " handler HeadersReceivedCrawlerRun.headers_received",
-                    )
+                check_present(
+                    self._caplog.records,
+                    "scrapy.core.downloader.handlers.http11",
+                    "DEBUG",
+                    f"Download stopped for <GET http://localhost:{run.portno}/> from signal handler HeadersReceivedCrawlerRun.headers_received",
                 )
-                log.check_present(
-                    (
-                        "scrapy.core.downloader.handlers.http11",
-                        "DEBUG",
-                        f"Download stopped for <GET http://localhost:{run.portno}/numbers> from"
-                        " signal handler HeadersReceivedCrawlerRun.headers_received",
-                    )
+                check_present(
+                    self._caplog.records,
+                    "scrapy.core.downloader.handlers.http11",
+                    "DEBUG",
+                    f"Download stopped for <GET http://localhost:{run.portno}/numbers> from signal handler HeadersReceivedCrawlerRun.headers_received",
                 )
             self._assert_visited_urls(run)
             self._assert_downloaded_responses(run, count=6)

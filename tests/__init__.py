@@ -4,6 +4,7 @@ tests: this package contains all Scrapy unittests
 see https://docs.scrapy.org/en/latest/contributing.html#running-tests
 """
 
+import logging
 import os
 import socket
 from pathlib import Path
@@ -37,3 +38,21 @@ except socket.gaierror:
 def get_testdata(*paths: str) -> bytes:
     """Return test data"""
     return Path(tests_datadir, *paths).read_bytes()
+
+
+def check_present(records: list, name: str, level_name: str, message: str) -> bool:
+    """LogCapture.check_present replacement"""
+    present = False
+
+    for record in records:
+        if logging.getLevelName(record.levelno) != level_name:
+            continue
+
+        if record.name != name:
+            continue
+
+        if record.message == message:
+            present = True
+            break
+
+    assert present
