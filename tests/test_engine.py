@@ -25,6 +25,7 @@ import attr
 from itemadapter import ItemAdapter
 from pydispatch import dispatcher
 from twisted.internet import defer, reactor
+from twisted.trial import unittest
 from twisted.web import server, static, util
 
 from scrapy import signals
@@ -242,7 +243,7 @@ class CrawlerRun:
         self.signals_caught[sig] = signalargs
 
 
-class EngineTest(CaplogTestCase):
+class EngineTest(CaplogTestCase, unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_crawler(self):

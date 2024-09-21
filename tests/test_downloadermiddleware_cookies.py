@@ -1,8 +1,6 @@
 import logging
-from unittest import TestCase
 
 import pytest
-from testfixtures import LogCapture
 
 from scrapy.downloadermiddlewares.cookies import CookiesMiddleware
 from scrapy.downloadermiddlewares.defaultheaders import DefaultHeadersMiddleware
@@ -13,6 +11,7 @@ from scrapy.settings import Settings
 from scrapy.spiders import Spider
 from scrapy.utils.python import to_bytes
 from scrapy.utils.test import get_crawler
+from tests import CaplogTestCase
 
 UNSET = object()
 
@@ -53,7 +52,7 @@ def _cookies_to_set_cookie_list(cookies):
     return filter(None, (_cookie_to_set_cookie_value(cookie) for cookie in cookies))
 
 
-class CookiesMiddlewareTest(TestCase):
+class CookiesMiddlewareTest(CaplogTestCase):
     def assertCookieValEqual(self, first, second, msg=None):
         def split_cookies(cookies):
             return sorted([s.strip() for s in to_bytes(cookies).split(b";")])
@@ -105,11 +104,7 @@ class CookiesMiddlewareTest(TestCase):
     def test_setting_enabled_cookies_debug(self):
         crawler = get_crawler(settings_dict={"COOKIES_DEBUG": True})
         mw = CookiesMiddleware.from_crawler(crawler)
-        with LogCapture(
-            "scrapy.downloadermiddlewares.cookies",
-            propagate=False,
-            level=logging.DEBUG,
-        ) as log:
+        with self._caplog.at_level(logging.DEBUG):
             req = Request("http://scrapytest.org/")
             res = Response(
                 "http://scrapytest.org/", headers={"Set-Cookie": "C1=value1; path=/"}
@@ -118,29 +113,27 @@ class CookiesMiddlewareTest(TestCase):
             req2 = Request("http://scrapytest.org/sub1/")
             mw.process_request(req2, crawler.spider)
 
-            log.check(
-                (
-                    "scrapy.downloadermiddlewares.cookies",
-                    "DEBUG",
-                    "Received cookies from: <200 http://scrapytest.org/>\n"
-                    "Set-Cookie: C1=value1; path=/\n",
-                ),
-                (
-                    "scrapy.downloadermiddlewares.cookies",
-                    "DEBUG",
-                    "Sending cookies to: <GET http://scrapytest.org/sub1/>\n"
-                    "Cookie: C1=value1\n",
-                ),
+            self.check(
+                [
+                    (
+                        "scrapy.downloadermiddlewares.cookies",
+                        "DEBUG",
+                        "Received cookies from: <200 http://scrapytest.org/>\n"
+                        "Set-Cookie: C1=value1; path=/\n",
+                    ),
+                    (
+                        "scrapy.downloadermiddlewares.cookies",
+                        "DEBUG",
+                        "Sending cookies to: <GET http://scrapytest.org/sub1/>\n"
+                        "Cookie: C1=value1\n",
+                    ),
+                ],
             )
 
     def test_setting_disabled_cookies_debug(self):
         crawler = get_crawler(settings_dict={"COOKIES_DEBUG": False})
         mw = CookiesMiddleware.from_crawler(crawler)
-        with LogCapture(
-            "scrapy.downloadermiddlewares.cookies",
-            propagate=False,
-            level=logging.DEBUG,
-        ) as log:
+        with self._caplog.at_level(logging.DEBUG):
             req = Request("http://scrapytest.org/")
             res = Response(
                 "http://scrapytest.org/", headers={"Set-Cookie": "C1=value1; path=/"}
@@ -149,7 +142,7 @@ class CookiesMiddlewareTest(TestCase):
             req2 = Request("http://scrapytest.org/sub1/")
             mw.process_request(req2, crawler.spider)
 
-            log.check()
+            assert len(self._caplog.records) == 0
 
     def test_do_not_break_on_non_utf8_header(self):
         req = Request("http://scrapytest.org/")
@@ -397,11 +390,7 @@ class CookiesMiddlewareTest(TestCase):
         """
         Invalid cookies are logged as warnings and discarded
         """
-        with LogCapture(
-            "scrapy.downloadermiddlewares.cookies",
-            propagate=False,
-            level=logging.INFO,
-        ) as lc:
+        with self._caplog.at_level(logging.INFO):
             cookies1 = [{"value": "bar"}, {"name": "key", "value": "value1"}]
             req1 = Request("http://example.org/1", cookies=cookies1)
             assert self.mw.process_request(req1, self.spider) is None
@@ -411,25 +400,27 @@ class CookiesMiddlewareTest(TestCase):
             cookies3 = [{"name": "foo", "value": None}, {"name": "key", "value": ""}]
             req3 = Request("http://example.org/3", cookies=cookies3)
             assert self.mw.process_request(req3, self.spider) is None
-            lc.check(
-                (
-                    "scrapy.downloadermiddlewares.cookies",
-                    "WARNING",
-                    "Invalid cookie found in request <GET http://example.org/1>:"
-                    " {'value': 'bar', 'secure': False} ('name' is missing)",
-                ),
-                (
-                    "scrapy.downloadermiddlewares.cookies",
-                    "WARNING",
-                    "Invalid cookie found in request <GET http://example.org/2>:"
-                    " {'name': 'foo', 'secure': False} ('value' is missing)",
-                ),
-                (
-                    "scrapy.downloadermiddlewares.cookies",
-                    "WARNING",
-                    "Invalid cookie found in request <GET http://example.org/3>:"
-                    " {'name': 'foo', 'value': None, 'secure': False} ('value' is missing)",
-                ),
+            self.check(
+                [
+                    (
+                        "scrapy.downloadermiddlewares.cookies",
+                        "WARNING",
+                        "Invalid cookie found in request <GET http://example.org/1>:"
+                        " {'value': 'bar', 'secure': False} ('name' is missing)",
+                    ),
+                    (
+                        "scrapy.downloadermiddlewares.cookies",
+                        "WARNING",
+                        "Invalid cookie found in request <GET http://example.org/2>:"
+                        " {'name': 'foo', 'secure': False} ('value' is missing)",
+                    ),
+                    (
+                        "scrapy.downloadermiddlewares.cookies",
+                        "WARNING",
+                        "Invalid cookie found in request <GET http://example.org/3>:"
+                        " {'name': 'foo', 'value': None, 'secure': False} ('value' is missing)",
+                    ),
+                ],
             )
         self.assertCookieValEqual(req1.headers["Cookie"], "key=value1")
         self.assertCookieValEqual(req2.headers["Cookie"], "key=value2")

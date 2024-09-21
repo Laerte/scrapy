@@ -48,6 +48,10 @@ class CaplogTestCase(TestCase):
     def inject_fixtures(self, caplog):
         self._caplog = caplog
 
+    def check(self, args):
+        for arg in args:
+            self.check_present(arg[0], arg[1], arg[2])
+
     def check_present(self, name: str, level_name: str, message: str) -> None:
         """LogCapture.check_present replacement"""
         present = False

@@ -1,13 +1,12 @@
 import gzip
 import inspect
+import logging
 import warnings
 from io import BytesIO
-from logging import WARNING
 from pathlib import Path
 from typing import Any
 from unittest import mock
 
-from testfixtures import LogCapture
 from twisted.internet.defer import inlineCallbacks
 from twisted.trial import unittest
 from w3lib.url import safe_url_string
@@ -27,10 +26,10 @@ from scrapy.spiders import (
 )
 from scrapy.spiders.init import InitSpider
 from scrapy.utils.test import get_crawler
-from tests import get_testdata, tests_datadir
+from tests import CaplogTestCase, get_testdata, tests_datadir
 
 
-class SpiderTest(unittest.TestCase):
+class SpiderTest(CaplogTestCase):
     spider_class = Spider
 
     def setUp(self):
@@ -125,11 +124,11 @@ class SpiderTest(unittest.TestCase):
 
     def test_logger(self):
         spider = self.spider_class("example.com")
-        with LogCapture() as lc:
+        with self._caplog.at_level(logging.DEBUG):
             spider.logger.info("test log msg")
-        lc.check(("example.com", "INFO", "test log msg"))
+        self.check_present("example.com", "INFO", "test log msg")
 
-        record = lc.records[0]
+        record = self._caplog.records[0]
         self.assertIn("spider", record.__dict__)
         self.assertIs(record.spider, spider)
 
@@ -740,19 +739,15 @@ Sitemap: /sitemap-relative-url.xml
         body = body_path.read_bytes()
         request = Request(url="https://example.com")
         response = Response(url="https://example.com", body=body, request=request)
-        with LogCapture(
-            "scrapy.spiders.sitemap", propagate=False, level=WARNING
-        ) as log:
+        with self._caplog.at_level(logging.WARNING):
             spider._get_sitemap_body(response)
-        log.check(
+        self.check_present(
+            "scrapy.spiders.sitemap",
+            "WARNING",
             (
-                "scrapy.spiders.sitemap",
-                "WARNING",
-                (
-                    "<200 https://example.com> body size after decompression "
-                    "(11511612 B) is larger than the download warning size "
-                    "(10000000 B)."
-                ),
+                "<200 https://example.com> body size after decompression "
+                "(11511612 B) is larger than the download warning size "
+                "(10000000 B)."
             ),
         )
 
@@ -768,19 +763,15 @@ Sitemap: /sitemap-relative-url.xml
             url="https://example.com", meta={"download_warnsize": 10_000_000}
         )
         response = Response(url="https://example.com", body=body, request=request)
-        with LogCapture(
-            "scrapy.spiders.sitemap", propagate=False, level=WARNING
-        ) as log:
+        with self._caplog.at_level(logging.WARNING):
             spider._get_sitemap_body(response)
-        log.check(
+        self.check_present(
+            "scrapy.spiders.sitemap",
+            "WARNING",
             (
-                "scrapy.spiders.sitemap",
-                "WARNING",
-                (
-                    "<200 https://example.com> body size after decompression "
-                    "(11511612 B) is larger than the download warning size "
-                    "(10000000 B)."
-                ),
+                "<200 https://example.com> body size after decompression "
+                "(11511612 B) is larger than the download warning size "
+                "(10000000 B)."
             ),
         )
 
@@ -793,19 +784,15 @@ Sitemap: /sitemap-relative-url.xml
             url="https://example.com", meta={"download_warnsize": 10_000_000}
         )
         response = Response(url="https://example.com", body=body, request=request)
-        with LogCapture(
-            "scrapy.spiders.sitemap", propagate=False, level=WARNING
-        ) as log:
+        with self._caplog.at_level(logging.WARNING):
             spider._get_sitemap_body(response)
-        log.check(
+        self.check_present(
+            "scrapy.spiders.sitemap",
+            "WARNING",
             (
-                "scrapy.spiders.sitemap",
-                "WARNING",
-                (
-                    "<200 https://example.com> body size after decompression "
-                    "(11511612 B) is larger than the download warning size "
-                    "(10000000 B)."
-                ),
+                "<200 https://example.com> body size after decompression "
+                "(11511612 B) is larger than the download warning size "
+                "(10000000 B)."
             ),
         )
 
