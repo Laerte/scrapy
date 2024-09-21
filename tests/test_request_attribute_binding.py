@@ -1,33 +1,15 @@
 import logging
 
-import pytest
 from twisted.internet import defer
-from twisted.trial.unittest import TestCase
 
 from scrapy import Request, signals
 from scrapy.http.response import Response
 from scrapy.utils.test import get_crawler
+from tests import CaplogTestCase
 from tests.mockserver import MockServer
 from tests.spiders import SingleRequestSpider
 
 OVERRIDDEN_URL = "https://example.org"
-
-
-def check_present(records: list, name: str, level_name: str, message: str) -> bool:
-    present = False
-
-    for record in records:
-        if logging.getLevelName(record.levelno) != level_name:
-            continue
-
-        if record.name != name:
-            continue
-
-        if record.message == message:
-            present = True
-            break
-
-    return present
 
 
 class ProcessResponseMiddleware:
@@ -75,17 +57,13 @@ class AlternativeCallbacksMiddleware:
         return response.replace(request=new_request)
 
 
-class CrawlTestCase(TestCase):
+class CrawlTestCase(CaplogTestCase):
     def setUp(self):
         self.mockserver = MockServer()
         self.mockserver.__enter__()
 
     def tearDown(self):
         self.mockserver.__exit__(None, None, None)
-
-    @pytest.fixture(autouse=True)
-    def inject_fixtures(self, caplog):
-        self._caplog = caplog
 
     @defer.inlineCallbacks
     def test_response_200(self):
@@ -157,8 +135,7 @@ class CrawlTestCase(TestCase):
         self.assertEqual(signal_params["response"].url, url)
         self.assertEqual(signal_params["request"].url, OVERRIDDEN_URL)
 
-        check_present(
-            self._caplog.records,
+        self.check_present(
             "scrapy.core.engine",
             "DEBUG",
             f"Crawled (200) <GET {OVERRIDDEN_URL}> (referer: None)",
@@ -229,8 +206,7 @@ class CrawlTestCase(TestCase):
             url = self.mockserver.url("/status?n=200")
             yield crawler.crawl(seed=url, mockserver=self.mockserver)
 
-        check_present(
-            self._caplog.records,
+        self.check_present(
             "alternative_callbacks_spider",
             "INFO",
             "alt_callback was invoked with foo=bar",

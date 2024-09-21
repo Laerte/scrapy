@@ -8,6 +8,9 @@ import logging
 import os
 import socket
 from pathlib import Path
+from unittest import TestCase
+
+from pytest import fixture
 
 # ignore system-wide proxies for tests
 # which would send requests to a totally unsuspecting server
@@ -40,19 +43,24 @@ def get_testdata(*paths: str) -> bytes:
     return Path(tests_datadir, *paths).read_bytes()
 
 
-def check_present(records: list, name: str, level_name: str, message: str) -> bool:
-    """LogCapture.check_present replacement"""
-    present = False
+class CaplogTestCase(TestCase):
+    @fixture(autouse=True)
+    def inject_fixtures(self, caplog):
+        self._caplog = caplog
 
-    for record in records:
-        if logging.getLevelName(record.levelno) != level_name:
-            continue
+    def check_present(self, name: str, level_name: str, message: str) -> None:
+        """LogCapture.check_present replacement"""
+        present = False
 
-        if record.name != name:
-            continue
+        for record in self._caplog.records:
+            if logging.getLevelName(record.levelno) != level_name:
+                continue
 
-        if record.message == message:
-            present = True
-            break
+            if record.name != name:
+                continue
 
-    assert present
+            if record.message == message:
+                present = True
+                break
+
+        assert present

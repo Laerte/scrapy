@@ -22,11 +22,9 @@ from unittest.mock import Mock
 from urllib.parse import urlparse
 
 import attr
-import pytest
 from itemadapter import ItemAdapter
 from pydispatch import dispatcher
 from twisted.internet import defer, reactor
-from twisted.trial import unittest
 from twisted.web import server, static, util
 
 from scrapy import signals
@@ -40,7 +38,7 @@ from scrapy.signals import request_scheduled
 from scrapy.spiders import Spider
 from scrapy.utils.signal import disconnect_all
 from scrapy.utils.test import get_crawler
-from tests import get_testdata, tests_datadir
+from tests import CaplogTestCase, get_testdata, tests_datadir
 
 
 class TestItem(Item):
@@ -244,11 +242,7 @@ class CrawlerRun:
         self.signals_caught[sig] = signalargs
 
 
-class EngineTest(unittest.TestCase):
-
-    @pytest.fixture(autouse=True)
-    def inject_fixtures(self, caplog):
-        self._caplog = caplog
+class EngineTest(CaplogTestCase):
 
     @defer.inlineCallbacks
     def test_crawler(self):
