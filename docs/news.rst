@@ -4780,8 +4780,7 @@ New features
 ~~~~~~~~~~~~
 
 *   A new scheduler priority queue,
-    ``scrapy.pqueues.DownloaderAwarePriorityQueue``, may be
-    :ref:`enabled <broad-crawls-scheduler-priority-queue>` for a significant
+    ``scrapy.pqueues.DownloaderAwarePriorityQueue``, may be enabled for a significant
     scheduling improvement on crawls targeting multiple web domains, at the
     cost of no :setting:`CONCURRENT_REQUESTS_PER_IP` support (:issue:`3520`)
 
