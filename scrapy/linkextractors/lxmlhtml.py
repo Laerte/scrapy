@@ -9,7 +9,7 @@ import operator
 import re
 from collections.abc import Callable, Iterable
 from functools import partial
-from typing import TYPE_CHECKING, Any, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urljoin, urlparse
 
 from lxml import etree
@@ -157,8 +157,8 @@ class LxmlParserLinkExtractor:
         return links
 
 
-_RegexT = Union[str, re.Pattern[str]]
-_RegexOrSeveralT = Union[_RegexT, Iterable[_RegexT]]
+_RegexT = str, re.Pattern[str]
+_RegexOrSeveralT = _RegexT, Iterable[_RegexT]
 
 
 class LxmlLinkExtractor:

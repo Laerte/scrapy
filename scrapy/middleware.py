@@ -15,12 +15,13 @@ from scrapy.utils.python import global_object_name
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
+    from typing import Concatenate
 
     from twisted.internet.defer import Deferred
 
     # typing.Concatenate and typing.ParamSpec require Python 3.10
     # typing.Self requires Python 3.11
-    from typing_extensions import Concatenate, ParamSpec, Self
+    from typing_extensions import ParamSpec, Self
 
     from scrapy import Spider
     from scrapy.crawler import Crawler

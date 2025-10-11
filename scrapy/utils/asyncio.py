@@ -15,11 +15,13 @@ from scrapy.utils.asyncgen import as_async_generator
 from scrapy.utils.reactor import is_asyncio_reactor_installed, is_reactor_installed
 
 if TYPE_CHECKING:
+    from typing import Concatenate
+
     from twisted.internet.base import DelayedCall
 
     # typing.Concatenate and typing.ParamSpec require Python 3.10
     # typing.Self, typing.TypeVarTuple and typing.Unpack require Python 3.11
-    from typing_extensions import Concatenate, ParamSpec, Self, TypeVarTuple, Unpack
+    from typing_extensions import ParamSpec, Self, TypeVarTuple, Unpack
 
     _P = ParamSpec("_P")
     _Ts = TypeVarTuple("_Ts")
@@ -178,7 +180,7 @@ class AsyncioLoopingCall:
             logger.exception("Error calling the AsyncioLoopingCall function")
             self.stop()
         else:
-            if isinstance(result, (Coroutine, Deferred)):
+            if isinstance(result, (Coroutine | Deferred)):
                 self.stop()
                 raise TypeError(
                     "The AsyncioLoopingCall function must not return a coroutine or a Deferred"

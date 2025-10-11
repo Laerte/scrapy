@@ -74,7 +74,7 @@ class DownloaderMiddlewareManager(MiddlewareManager):
                 else:
                     response = yield deferred_from_coro(method(request=request))
                 if response is not None and not isinstance(
-                    response, (Response, Request)
+                    response, (Response | Request)
                 ):
                     raise _InvalidOutput(
                         f"Middleware {method.__qualname__} must return None, Response or "
@@ -105,7 +105,7 @@ class DownloaderMiddlewareManager(MiddlewareManager):
                     response = yield deferred_from_coro(
                         method(request=request, response=response)
                     )
-                if not isinstance(response, (Response, Request)):
+                if not isinstance(response, (Response | Request)):
                     raise _InvalidOutput(
                         f"Middleware {method.__qualname__} must return Response or Request, "
                         f"got {type(response)}"
@@ -131,7 +131,7 @@ class DownloaderMiddlewareManager(MiddlewareManager):
                         method(request=request, exception=exception)
                     )
                 if response is not None and not isinstance(
-                    response, (Response, Request)
+                    response, (Response | Request)
                 ):
                     raise _InvalidOutput(
                         f"Middleware {method.__qualname__} must return None, Response or "

@@ -21,11 +21,12 @@ from scrapy.utils.asyncio import call_later, is_asyncio_available
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable
+    from typing import Concatenate
 
     from twisted.python.failure import Failure
 
     # typing.Concatenate and typing.ParamSpec require Python 3.10
-    from typing_extensions import Concatenate, ParamSpec
+    from typing_extensions import ParamSpec
 
     _P = ParamSpec("_P")
 
@@ -327,7 +328,7 @@ def process_chain_both(
         stacklevel=2,
     )
     d: Deferred = Deferred()
-    for cb, eb in zip(callbacks, errbacks):
+    for cb, eb in zip(callbacks, errbacks, strict=False):
         d.addCallback(cb, *a, **kw)
         d.addErrback(eb, *a, **kw)
     if isinstance(input, failure.Failure):

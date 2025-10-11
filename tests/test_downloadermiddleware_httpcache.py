@@ -265,7 +265,7 @@ class RFC2616PolicyTestMixin(PolicyTestMixin):
         try:
             result = mw.process_request(request)
             if result:
-                assert isinstance(result, (Request, Response))
+                assert isinstance(result, (Request | Response))
                 return result
             assert response is not None
             result = mw.process_response(request, response)

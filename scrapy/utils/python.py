@@ -21,10 +21,11 @@ from scrapy.utils.asyncgen import as_async_generator
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from re import Pattern
+    from typing import Concatenate
 
     # typing.Concatenate and typing.ParamSpec require Python 3.10
     # typing.Self requires Python 3.11
-    from typing_extensions import Concatenate, ParamSpec, Self
+    from typing_extensions import ParamSpec, Self
 
     _P = ParamSpec("_P")
 
@@ -95,7 +96,7 @@ def is_listlike(x: Any) -> bool:
     >>> is_listlike(range(5))
     True
     """
-    return hasattr(x, "__iter__") and not isinstance(x, (str, bytes))
+    return hasattr(x, "__iter__") and not isinstance(x, (str | bytes))
 
 
 def unique(list_: Iterable[_T], key: Callable[[_T], Any] = lambda x: x) -> list[_T]:
@@ -118,7 +119,7 @@ def to_unicode(
     ``text`` is already an unicode object, return it as-is."""
     if isinstance(text, str):
         return text
-    if not isinstance(text, (bytes, str)):
+    if not isinstance(text, (bytes | str)):
         raise TypeError(
             f"to_unicode must receive a bytes or str object, got {type(text).__name__}"
         )
@@ -286,7 +287,7 @@ def get_spec(func: Callable[..., Any]) -> tuple[list[str], dict[str, Any]]:
 
     firstdefault = len(spec.args) - len(defaults)
     args = spec.args[:firstdefault]
-    kwargs = dict(zip(spec.args[firstdefault:], defaults))
+    kwargs = dict(zip(spec.args[firstdefault:], defaults, strict=False))
     return args, kwargs
 
 

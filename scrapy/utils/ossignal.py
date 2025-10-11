@@ -3,12 +3,10 @@ from __future__ import annotations
 import signal
 from collections.abc import Callable
 from types import FrameType
-from typing import Any, Optional, Union
+from typing import Any
 
 # copy of _HANDLER from typeshed/stdlib/signal.pyi
-SignalHandlerT = Union[
-    Callable[[int, Optional[FrameType]], Any], int, signal.Handlers, None
-]
+SignalHandlerT = Callable[[int, FrameType | None], Any], int, signal.Handlers, None
 
 signal_names: dict[int, str] = {}
 for signame in dir(signal):

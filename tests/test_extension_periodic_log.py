@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from scrapy.extensions.periodic_log import PeriodicLog
 from scrapy.utils.test import get_crawler
 
 from .spiders import MetaSpider
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 stats_dump_1 = {
     "log_count/INFO": 10,
@@ -104,38 +107,38 @@ class TestPeriodicLog:
             ]
 
         # Including all
-        check({"PERIODIC_LOG_DELTA": True}, lambda k, v: isinstance(v, (int, float)))
+        check({"PERIODIC_LOG_DELTA": True}, lambda k, v: isinstance(v, (int | float)))
 
         # include:
         check(
             {"PERIODIC_LOG_DELTA": {"include": ["downloader/"]}},
-            lambda k, v: isinstance(v, (int, float)) and "downloader/" in k,
+            lambda k, v: isinstance(v, (int | float)) and "downloader/" in k,
         )
 
         # include multiple
         check(
             {"PERIODIC_LOG_DELTA": {"include": ["downloader/", "scheduler/"]}},
-            lambda k, v: isinstance(v, (int, float))
+            lambda k, v: isinstance(v, (int | float))
             and ("downloader/" in k or "scheduler/" in k),
         )
 
         # exclude
         check(
             {"PERIODIC_LOG_DELTA": {"exclude": ["downloader/"]}},
-            lambda k, v: isinstance(v, (int, float)) and "downloader/" not in k,
+            lambda k, v: isinstance(v, (int | float)) and "downloader/" not in k,
         )
 
         # exclude multiple
         check(
             {"PERIODIC_LOG_DELTA": {"exclude": ["downloader/", "scheduler/"]}},
-            lambda k, v: isinstance(v, (int, float))
+            lambda k, v: isinstance(v, (int | float))
             and ("downloader/" not in k and "scheduler/" not in k),
         )
 
         # include exclude combined
         check(
             {"PERIODIC_LOG_DELTA": {"include": ["downloader/"], "exclude": ["bytes"]}},
-            lambda k, v: isinstance(v, (int, float))
+            lambda k, v: isinstance(v, (int | float))
             and ("downloader/" in k and "bytes" not in k),
         )
 

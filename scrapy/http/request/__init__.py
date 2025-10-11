@@ -8,16 +8,7 @@ See documentation in docs/topics/request-response.rst
 from __future__ import annotations
 
 import inspect
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    AnyStr,
-    NoReturn,
-    TypedDict,
-    TypeVar,
-    Union,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, AnyStr, NoReturn, TypedDict, TypeVar, overload
 
 from w3lib.url import safe_url_string
 
@@ -30,12 +21,13 @@ from scrapy.utils.trackref import object_ref
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping
+    from typing import Concatenate
 
     from twisted.python.failure import Failure
 
     # typing.Concatenate requires Python 3.10
     # typing.NotRequired and typing.Self require Python 3.11
-    from typing_extensions import Concatenate, NotRequired, Self
+    from typing_extensions import NotRequired, Self
 
     from scrapy.http import Response
 
@@ -50,7 +42,7 @@ class VerboseCookie(TypedDict):
     secure: NotRequired[bool]
 
 
-CookiesT = Union[dict[str, str], list[VerboseCookie]]
+CookiesT = dict[str, str], list[VerboseCookie]
 
 
 RequestTypeVar = TypeVar("RequestTypeVar", bound="Request")

@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from types import ModuleType
 
     # typing.Concatenate requires Python 3.10
-    from typing_extensions import Concatenate
+    from typing import Concatenate
 
     from scrapy.http.request import Request
     from scrapy.settings import BaseSettings

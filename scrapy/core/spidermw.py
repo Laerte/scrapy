@@ -11,7 +11,7 @@ from collections.abc import AsyncIterator, Callable, Coroutine, Iterable
 from functools import wraps
 from inspect import isasyncgenfunction, iscoroutine
 from itertools import islice
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 from warnings import warn
 
 from twisted.internet.defer import Deferred, inlineCallbacks
@@ -42,13 +42,13 @@ logger = logging.getLogger(__name__)
 
 _T = TypeVar("_T")
 ScrapeFunc = Callable[
-    [Union[Response, Failure], Request],
-    Coroutine[Any, Any, Union[Iterable[_T], AsyncIterator[_T]]],
+    [Response | Failure, Request],
+    Coroutine[Any, Any, Iterable[_T] | AsyncIterator[_T]],
 ]
 
 
 def _isiterable(o: Any) -> bool:
-    return isinstance(o, (Iterable, AsyncIterator))
+    return isinstance(o, (Iterable | AsyncIterator))
 
 
 class SpiderMiddlewareManager(MiddlewareManager):
@@ -179,7 +179,7 @@ class SpiderMiddlewareManager(MiddlewareManager):
                 yield from iterable
             except Exception as ex:
                 exception_result = cast(
-                    "Union[Failure, MutableChain[_T]]",
+                    "Failure | MutableChain[_T]",
                     self._process_spider_exception(
                         response, ex, exception_processor_index
                     ),
@@ -195,7 +195,7 @@ class SpiderMiddlewareManager(MiddlewareManager):
                     yield r
             except Exception as ex:
                 exception_result = cast(
-                    "Union[Failure, MutableAsyncChain[_T]]",
+                    "Failure | MutableAsyncChain[_T]",
                     self._process_spider_exception(
                         response, ex, exception_processor_index
                     ),
@@ -241,9 +241,7 @@ class SpiderMiddlewareManager(MiddlewareManager):
                 # simplified when downgrading is removed.
                 if dfd.called:
                     # the result is available immediately if _process_spider_output didn't do downgrading
-                    return cast(
-                        "Union[MutableChain[_T], MutableAsyncChain[_T]]", dfd.result
-                    )
+                    return cast("MutableChain[_T] | MutableAsyncChain[_T]", dfd.result)
                 # we forbid waiting here because otherwise we would need to return a deferred from
                 # _process_spider_exception too, which complicates the architecture
                 msg = f"Async iterable returned from {global_object_name(method)} cannot be downgraded"

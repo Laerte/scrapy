@@ -5,7 +5,7 @@ import pprint
 import sys
 from collections.abc import MutableMapping
 from logging.config import dictConfig
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from twisted.internet import asyncioreactor
 from twisted.python import log as twisted_log
@@ -35,7 +35,7 @@ def failure_to_exc_info(
         return (
             failure.type,
             failure.value,
-            cast("Optional[TracebackType]", failure.getTracebackObject()),
+            cast("TracebackType | None", failure.getTracebackObject()),
         )
     return None
 

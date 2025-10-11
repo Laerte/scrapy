@@ -7,7 +7,7 @@ import logging
 import warnings
 from collections import deque
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from twisted.internet.defer import Deferred, inlineCallbacks
 from twisted.python.failure import Failure
@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 
 
 _T = TypeVar("_T")
-QueueTuple = tuple[Union[Response, Failure], Request, Deferred[None]]
+QueueTuple = tuple[Response | Failure, Request, Deferred[None]]
 
 
 class Slot:
@@ -243,7 +243,7 @@ class Scraper:
 
     async def _scrape(self, result: Response | Failure, request: Request) -> None:
         """Handle the downloaded response or failure through the spider callback/errback."""
-        if not isinstance(result, (Response, Failure)):
+        if not isinstance(result, (Response | Failure)):
             raise TypeError(
                 f"Incorrect type: expected Response or Failure, got {type(result)}: {result!r}"
             )

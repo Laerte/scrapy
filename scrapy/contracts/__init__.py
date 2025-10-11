@@ -50,7 +50,7 @@ class Contract:
                 else:
                     results.addSuccess(self.testcase_pre)
                 cb_result = cb(response, **cb_kwargs)
-                if isinstance(cb_result, (AsyncGenerator, CoroutineType)):
+                if isinstance(cb_result, (AsyncGenerator | CoroutineType)):
                     raise TypeError("Contracts don't support async callbacks")
                 return list(cast("Iterable[Any]", iterate_spider_output(cb_result)))
 
@@ -66,7 +66,7 @@ class Contract:
             @wraps(cb)
             def wrapper(response: Response, **cb_kwargs: Any) -> list[Any]:
                 cb_result = cb(response, **cb_kwargs)
-                if isinstance(cb_result, (AsyncGenerator, CoroutineType)):
+                if isinstance(cb_result, (AsyncGenerator | CoroutineType)):
                     raise TypeError("Contracts don't support async callbacks")
                 output = list(cast("Iterable[Any]", iterate_spider_output(cb_result)))
                 try:

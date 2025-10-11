@@ -10,7 +10,7 @@ from __future__ import annotations
 import copy
 import warnings
 from collections.abc import AsyncIterator, Awaitable, Callable
-from typing import TYPE_CHECKING, Any, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from scrapy.http import HtmlResponse, Request, Response
 from scrapy.link import Link
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 _T = TypeVar("_T")
 ProcessLinksT = Callable[[list[Link]], list[Link]]
-ProcessRequestT = Callable[[Request, Response], Optional[Request]]
+ProcessRequestT = Callable[[Request, Response], Request | None]
 
 
 def _identity(x: _T) -> _T:

@@ -6,7 +6,7 @@ import warnings
 from collections.abc import Iterable, Iterator, Mapping, MutableMapping
 from importlib import import_module
 from pprint import pformat
-from typing import TYPE_CHECKING, Any, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from scrapy.exceptions import ScrapyDeprecationWarning
 from scrapy.settings import default_settings
@@ -14,7 +14,7 @@ from scrapy.utils.misc import load_object
 
 # The key types are restricted in BaseSettings._get_key() to ones supported by JSON,
 # see https://github.com/scrapy/scrapy/issues/5383.
-_SettingsKeyT = Union[bool, float, int, str, None]
+_SettingsKeyT = bool | float | int | str | None
 
 if TYPE_CHECKING:
     from types import ModuleType
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     # typing.Self requires Python 3.11
     from typing_extensions import Self
 
-    _SettingsInputT = Union[SupportsItems[_SettingsKeyT, Any], str, None]
+    _SettingsInputT = SupportsItems[_SettingsKeyT, Any], str, None
 
 
 SETTINGS_PRIORITIES: dict[str, int] = {
@@ -293,7 +293,7 @@ class BaseSettings(MutableMapping[_SettingsKeyT, Any]):
         if isinstance(value, str):
             try:
                 value_loaded = json.loads(value)
-                if not isinstance(value_loaded, (dict, list)):
+                if not isinstance(value_loaded, (dict | list)):
                     raise ValueError(
                         f"JSON string for setting '{name}' must evaluate to a dict or list, "
                         f"got {type(value_loaded).__name__}: {value_loaded!r}"
@@ -303,7 +303,7 @@ class BaseSettings(MutableMapping[_SettingsKeyT, Any]):
                 return value.split(",")
         if isinstance(value, tuple):
             return list(value)
-        if not isinstance(value, (dict, list)):
+        if not isinstance(value, (dict | list)):
             raise ValueError(
                 f"Setting '{name}' must be a dict, list, tuple, or string, "
                 f"got {type(value).__name__}: {value!r}"
@@ -599,7 +599,7 @@ class BaseSettings(MutableMapping[_SettingsKeyT, Any]):
     def _get_key(self, key_value: Any) -> _SettingsKeyT:
         return (
             key_value
-            if isinstance(key_value, (bool, float, int, str, type(None)))
+            if isinstance(key_value, (bool | float | int | str | type(None)))
             else str(key_value)
         )
 

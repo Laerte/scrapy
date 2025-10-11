@@ -25,7 +25,7 @@ def _cookie_to_set_cookie_value(cookie):
             if key in ("name", "value"):
                 return None
             continue
-        if isinstance(cookie[key], (bool, float, int, str)):
+        if isinstance(cookie[key], (bool | float | int | str)):
             decoded[key] = str(cookie[key])
         else:
             try:
